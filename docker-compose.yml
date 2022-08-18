@@ -1,0 +1,11 @@
+version: '3'
+services:
+  telnet_client:
+    restart: always
+    build: .
+    container_name: 'telnet_client'
+    working_dir: '/app/code'
+    tty: true
+    volumes:
+      - ./code:/app/code
+    network_mode: "host"
