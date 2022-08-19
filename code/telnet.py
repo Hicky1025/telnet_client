@@ -1,6 +1,7 @@
 #server user:campUser pass:SecCamp2022?
 import sys, socket
-import threading
+import concurrent.futures
+import readchar
 
 # Telnetのオプションを定義
 IAC  = bytes([255]) # "Interpret As Command"
@@ -113,47 +114,48 @@ def main():
   print('Connected to remote host!!\n')
 
   sock.sendall(first_packet)
-  return 
+
+  executor = concurrent.futures.ProcessPoolExecutor(max_workers=2)
+  executor.submit(input())
 
 def recv():
-  packet = b''
-  recv_packet = sock.recv(data_size)
-  if IAC + DO + XDISPLOC in recv_packet:
-    packet = packet + IAC + WONT + XDISPLOC
-  if IAC + DO + NEW_ENVIRON in recv_packet:
-    packet = packet + IAC + WONT + NEW_ENVIRON
-  if IAC + DO + SGA in recv_packet:
-    packet = packet + IAC + WONT + SGA
-  if IAC + WILL + SGA in recv_packet:
-    packet = packet + IAC + DONT + SGA
-  if IAC + DO + ECHO in recv_packet:
-    packet = packet + IAC + WONT + ECHO
-  if IAC + DO + NAWS in recv_packet:
-    packet = packet + IAC + WONT + NAWS
-  if IAC + WILL + STATUS in recv_packet:
-    packet = packet + IAC + DONT + STATUS
-  if IAC + DO + LFLOW in recv_packet:
-    packet = packet + IAC + WONT + LFLOW
-  if IAC + SB + TSPEED in recv_packet:
-    packet = packet + IAC + SB + TSPEED + b'9600,9600' + IAC + SE
-  if IAC + SB + TTYPE in recv_packet:
-    packet = packet + IAC + SB + TTYPE + b'\x00' + b'XTERM-256COLOR' + IAC + SE
-  if IAC not in recv_packet:
-    sys.stdout.buffer.write(recv_packet)
-  if packet != b'':
-    sock.sendall(packet)
-    return
-  else:
-    return
-
+  while True:
+    packet = b''
+    recv_packet = sock.recv(data_size)
+    
+    if IAC + DO + XDISPLOC in recv_packet:
+      packet = packet + IAC + WONT + XDISPLOC
+    if IAC + DO + NEW_ENVIRON in recv_packet:
+      packet = packet + IAC + WONT + NEW_ENVIRON
+    if IAC + DO + SGA in recv_packet:
+      packet = packet + IAC + WONT + SGA
+    if IAC + WILL + SGA in recv_packet:
+      packet = packet + IAC + DONT + SGA
+    if IAC + DO + ECHO in recv_packet:
+      packet = packet + IAC + WONT + ECHO
+    if IAC + DO + NAWS in recv_packet:
+      packet = packet + IAC + WONT + NAWS
+    if IAC + WILL + STATUS in recv_packet:
+      packet = packet + IAC + DONT + STATUS
+    if IAC + DO + LFLOW in recv_packet:
+      packet = packet + IAC + WONT + LFLOW
+    if IAC + SB + TSPEED in recv_packet:
+      packet = packet + IAC + SB + TSPEED + b'9600,9600' + IAC + SE
+    if IAC + SB + TTYPE in recv_packet:
+      packet = packet + IAC + SB + TTYPE + b'\x00' + b'XTERM-256COLOR' + IAC + SE
+    if IAC not in recv_packet and packet == b'':
+      sys.stdout.buffer.write(recv_packet)
+    else:
+      sock.sendall(packet)
+  
 
 def input():
-  string = list(input())
-  for i in string.pop():
-    packet = i.encode()
-    sock.sendall(packet)
-  sock.sendall(b'\r\n')
-  return
+  while True:
+    packet = b''
+    string = readchar.readkey()
+    print(string)
+    packet = string.encode()
+    # sock.sendall(packet)
 
 if __name__ == '__main__':
   main()
