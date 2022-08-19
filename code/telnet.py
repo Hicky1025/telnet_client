@@ -1,7 +1,7 @@
 #server user:campUser pass:SecCamp2022?
 import sys, socket
-import concurrent.futures
 import readchar
+import threading
 
 # Telnetのオプションを定義
 IAC  = bytes([255]) # "Interpret As Command"
@@ -92,32 +92,6 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 # 受信パケットのデータの最大サイズ
 data_size = 1024
 
-def main():
-  # if(len(sys.argv) < 3) :
-  #   print('command is 'python3 telnet.py [ip adder] [connection port]'')
-  #   sys.exit
-  # ip_add = sys.argv[1]
-  # tel_port = int(sys.argv[2])
-
-  ip_add = '20.194.222.82'
-  tel_port = 23
-
-  # Socketを用いたTCPセッションの確立
-  try :
-    sock.connect((ip_add, int(tel_port)))
-  except :
-    # 接続失敗メッセージの出力　確立
-    print('sock session error...')
-    sys.exit
-
-  # 接続成功メッセージの出力
-  print('Connected to remote host!!\n')
-
-  sock.sendall(first_packet)
-
-  executor = concurrent.futures.ProcessPoolExecutor(max_workers=2)
-  executor.submit(input())
-
 def recv():
   while True:
     packet = b''
@@ -148,14 +122,47 @@ def recv():
     else:
       sock.sendall(packet)
   
-
 def input():
   while True:
-    packet = b''
     string = readchar.readkey()
-    print(string)
-    packet = string.encode()
-    # sock.sendall(packet)
+    if string == '\n':
+      sock.sendall(b'\r\n')
+      continue
+    if string == 'qqq':
+      sys.exit()
+    sock.sendall(string.encode())
+
+def main():
+  # if(len(sys.argv) < 3) :
+  #   print('command is 'python3 telnet.py [ip adder] [connection port]'')
+  #   sys.exit
+  # ip_add = sys.argv[1]
+  # tel_port = int(sys.argv[2])
+
+  ip_add = '20.194.222.82'
+  tel_port = 23
+
+  # Socketを用いたTCPセッションの確立
+  try :
+    sock.connect((ip_add, int(tel_port)))
+  except :
+    # 接続失敗メッセージの出力　確立
+    print('sock session error...')
+    sys.exit
+
+  # 接続成功メッセージの出力
+  print('Connected to remote host!!\n')
+
+  sock.sendall(first_packet)
+
+  t1 = threading.Thread(target=recv)
+  t1.start()
+
+  t2 = threading.Thread(target=input)
+  t2.start()
+  
+  string = readchar.readkey()
+  print(string)
 
 if __name__ == '__main__':
   main()
