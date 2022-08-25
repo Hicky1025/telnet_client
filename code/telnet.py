@@ -124,13 +124,14 @@ def recv():
   
 def input():
   while True:
-    string = readchar.readkey()
-    if string == '\n':
-      sock.sendall(b'\r\n')
-      continue
-    if string == 'qqq':
+    try:
+      string = readchar.readkey()
+      if string == '\n':
+        sock.sendall(b'\r\n')
+        continue
+      sock.sendall(string.encode())
+    except KeyboardInterrupt:
       sys.exit()
-    sock.sendall(string.encode())
 
 def main():
   # if(len(sys.argv) < 3) :
@@ -143,12 +144,14 @@ def main():
   tel_port = 23
 
   # Socketを用いたTCPセッションの確立
+  sock.settimeout(5)
+
   try :
     sock.connect((ip_add, int(tel_port)))
   except :
     # 接続失敗メッセージの出力　確立
-    print('sock session error...')
-    sys.exit
+    print('sock session timeout error...')
+    sys.exit()
 
   # 接続成功メッセージの出力
   print('Connected to remote host!!\n')
@@ -160,9 +163,6 @@ def main():
 
   t2 = threading.Thread(target=input)
   t2.start()
-  
-  string = readchar.readkey()
-  print(string)
 
 if __name__ == '__main__':
   main()
