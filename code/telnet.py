@@ -131,17 +131,18 @@ def input():
         continue
       sock.sendall(string.encode())
     except KeyboardInterrupt:
+      print("Break")
       sys.exit()
 
 def main():
-  # if(len(sys.argv) < 3) :
-  #   print('command is 'python3 telnet.py [ip adder] [connection port]'')
-  #   sys.exit
-  # ip_add = sys.argv[1]
-  # tel_port = int(sys.argv[2])
+  if(len(sys.argv) < 3):
+    print('command is python3 telnet.py [ip adder] [connection port]')
+    sys.exit
+  ip_add = sys.argv[1]
+  tel_port = int(sys.argv[2])
 
-  ip_add = '20.194.222.82'
-  tel_port = 23
+  # ip_add = 'x.x.x.x'
+  # tel_port = 23
 
   # Socketを用いたTCPセッションの確立
   sock.settimeout(5)
@@ -150,7 +151,7 @@ def main():
     sock.connect((ip_add, int(tel_port)))
   except :
     # 接続失敗メッセージの出力　確立
-    print('sock session timeout error...')
+    print('Sock session is timeout error...')
     sys.exit()
 
   # 接続成功メッセージの出力
